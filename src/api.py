@@ -26,9 +26,9 @@ class PPExtensionApi(Resource):
     def get(self):
         url = flask.request.args.get("url", None)
         policy_content = self._parse_content_from_url(url)
-        # gpt_answer = self.gpt_client.answer(policy_content, "What types of data are being collected from users?")
+        gpt_answer = self.gpt_client.answer(policy_content, "What types of data are being collected from users?")
         response = flask.jsonify(
-            {"data": policy_content}
+            {"data": gpt_answer}
         )
         response.headers.add("Access-Control-Allow-Origin", "*")
         return response
@@ -36,4 +36,4 @@ class PPExtensionApi(Resource):
 api.add_resource(PPExtensionApi, "/summarize")
 
 if __name__ == "__main__":
-    app.run(port=9000, debug=True)
+    app.run(port=9000)
