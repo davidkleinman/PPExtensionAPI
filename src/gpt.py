@@ -10,23 +10,29 @@ class GPTClient:
         openai.api_key = os.getenv("OPEN_AI_API_KEY")
         openai.organization = "org-Dblzvd76olnntly83Upvwr2f"
 
-    def answer(self, txt, question):
-        query = f"""Use the below privacy policy to answer the subsequent question. If the answer cannot be found, write "I don't know."
-
-        Privacy policy:
-        \"\"\"
-        {txt}
-        \"\"\"
-
-        Question: {question}?"""
-
-        response = openai.ChatCompletion.create(
-            messages=[
-                {'role': 'system', 'content': 'You answer questions about the contents of the following privacy policy.'},
-                {'role': 'user', 'content': query},
-            ],
-            model=GPT_MODEL,
-            temperature=0,
-        )
-
-        return response['choices'][0]['message']['content']
+    def summarize_policy(self, policy):
+        instructions = """
+You are an agent whose purpose is to answer questions regarding privacy policies.
+If you can't find an answer to a specific question, please reply: "I don't have enough information".
+"""
+        questions = [
+            "What types of personal information are collected?",
+            "How is personal information collected from users?",
+            "What is the purpose for collecting user data?",
+            "Is the collected data shared with third parties?",
+            "What methods are used for data storage and security?",
+        ]
+        responses = []
+        for question in questions:
+            response = openai.ChatCompletion.create(
+                messages=[
+                    {'role': 'system', 'content': instructions},
+                    {'role': 'user', 'content': 'Regarding this privacy policy:'},
+                    {'role': 'user', 'content': policy},
+                    {'role': 'user', 'content': question},
+                ],
+                model=self.gpt_model,
+                temperature=0,
+            )
+            responses.append(response['choices'][0]['message']['content'])
+        return responses

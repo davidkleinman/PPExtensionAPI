@@ -26,7 +26,7 @@ class PPExtensionApi(Resource):
     def get(self):
         url = flask.request.args.get("url", None)
         policy_content = self._parse_content_from_url(url)
-        gpt_answer = self.gpt_client.answer(policy_content, "What types of data are being collected from users?")
+        gpt_answer = self.gpt_client.summarize_policy(policy_content)
         response = flask.jsonify(
             {"data": gpt_answer}
         )
