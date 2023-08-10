@@ -1,7 +1,15 @@
+import json
 import openai
 import os
 
-GPT_MODEL = "gpt-3.5-turbo"
+from prompts import (
+    AGENT_INSTRUCTIONS,
+    FORMATTING_INSTRUCTIONS,
+    FORMATTING_REPAIR_INSTRUCTIONS,
+    QUESTIONS
+)
+
+GPT_MODEL = "gpt-3.5-turbo-16k"
 
 
 class GPTClient:
@@ -10,29 +18,32 @@ class GPTClient:
         openai.api_key = os.getenv("OPEN_AI_API_KEY")
         openai.organization = "org-Dblzvd76olnntly83Upvwr2f"
 
+    def _repair_formatting(self, body):
+        response = openai.ChatCompletion.create(
+            messages=[
+                {'role': 'user', 'content': FORMATTING_REPAIR_INSTRUCTIONS},
+                {'role': 'user', 'content': 'Input:'},
+                {'role': 'user', 'content': body},
+            ],
+            model=self.gpt_model,
+            temperature=0,
+        )
+        return json.loads(response['choices'][0]['message']['content'])
+
     def summarize_policy(self, policy):
-        instructions = """
-You are an agent whose purpose is to answer questions regarding privacy policies.
-If you can't find an answer to a specific question, please reply: "I don't have enough information".
-"""
-        questions = [
-            "What types of personal information are collected?",
-            "How is personal information collected from users?",
-            "What is the purpose for collecting user data?",
-            "Is the collected data shared with third parties?",
-            "What methods are used for data storage and security?",
-        ]
-        responses = []
-        for question in questions:
+        try:
             response = openai.ChatCompletion.create(
                 messages=[
-                    {'role': 'system', 'content': instructions},
-                    {'role': 'user', 'content': 'Regarding this privacy policy:'},
+                    {'role': 'system', 'content': AGENT_INSTRUCTIONS},
+                    {'role': 'user', 'content': FORMATTING_INSTRUCTIONS},
+                    {'role': 'user', 'content': 'Privacy policy:'},
                     {'role': 'user', 'content': policy},
-                    {'role': 'user', 'content': question},
+                    {'role': 'user', 'content': 'Questions:'},
+                    {'role': 'user', 'content': QUESTIONS},
                 ],
                 model=self.gpt_model,
                 temperature=0,
             )
-            responses.append(response['choices'][0]['message']['content'])
-        return responses
+            return json.loads(response['choices'][0]['message']['content'])
+        except json.JSONDecodeError:
+            return self._repair_formatting(response['choices'][0]['message']['content'])
