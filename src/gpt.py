@@ -4,7 +4,6 @@ import os
 
 from prompts import (
     AGENT_INSTRUCTIONS,
-    FORMATTING_INSTRUCTIONS,
     FORMATTING_REPAIR_INSTRUCTIONS,
     QUESTIONS
 )
@@ -35,10 +34,8 @@ class GPTClient:
             response = openai.ChatCompletion.create(
                 messages=[
                     {'role': 'system', 'content': AGENT_INSTRUCTIONS},
-                    {'role': 'user', 'content': FORMATTING_INSTRUCTIONS},
                     {'role': 'user', 'content': 'Privacy policy:'},
                     {'role': 'user', 'content': policy},
-                    {'role': 'user', 'content': 'Questions:'},
                     {'role': 'user', 'content': QUESTIONS},
                 ],
                 model=self.gpt_model,
