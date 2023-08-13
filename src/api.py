@@ -25,8 +25,14 @@ class PPExtensionApi(Resource):
 
     def get(self):
         url = flask.request.args.get("url", None)
+        api_key = flask.request.args.get("apiKey", None)
+        organization_id = flask.request.args.get("orgId", None)
         policy_content = self._parse_content_from_url(url)
-        gpt_answer = self.gpt_client.summarize_policy(policy_content)
+        if not self.gpt_client.validate_privacy_policy(policy_content, api_key, organization_id):
+            response = flask.Response("The webpage does not contain a privacy policy", 400)
+            response.headers.add("Access-Control-Allow-Origin", "*")
+            return response
+        gpt_answer = self.gpt_client.summarize_policy(policy_content, api_key, organization_id)
         response = flask.jsonify(
             {"data": gpt_answer}
         )

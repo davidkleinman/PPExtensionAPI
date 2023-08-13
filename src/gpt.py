@@ -1,10 +1,10 @@
 import json
 import openai
-import os
 
 from prompts import (
     AGENT_INSTRUCTIONS,
-    FORMATTING_REPAIR_INSTRUCTIONS,
+    TRANSFORM_TO_JSON_INSTRUCTIONS,
+    VALIDATE_PRIVACY_POLICY_INSTRUCTIONS,
     QUESTIONS
 )
 
@@ -14,13 +14,27 @@ GPT_MODEL = "gpt-3.5-turbo-16k"
 class GPTClient:
     def __init__(self, gpt_model=GPT_MODEL) -> None:
         self.gpt_model = gpt_model
-        openai.api_key = os.getenv("OPEN_AI_API_KEY")
-        openai.organization = "org-Dblzvd76olnntly83Upvwr2f"
 
-    def _repair_formatting(self, body):
+    def validate_privacy_policy(self, body, api_key, organization_id):
+        openai.api_key = api_key
+        openai.organization = organization_id
         response = openai.ChatCompletion.create(
             messages=[
-                {'role': 'user', 'content': FORMATTING_REPAIR_INSTRUCTIONS},
+                {'role': 'user', 'content': VALIDATE_PRIVACY_POLICY_INSTRUCTIONS},
+                {'role': 'user', 'content': "Input:"},
+                {'role': 'user', 'content': body}
+            ],
+            model=self.gpt_model,
+            temperature=0,
+        )
+        if response['choices'][0]['message']['content'].lower() == "yes":
+            return True
+        return False
+
+    def _transform_to_json(self, body):
+        response = openai.ChatCompletion.create(
+            messages=[
+                {'role': 'user', 'content': TRANSFORM_TO_JSON_INSTRUCTIONS},
                 {'role': 'user', 'content': 'Input:'},
                 {'role': 'user', 'content': body},
             ],
@@ -29,18 +43,17 @@ class GPTClient:
         )
         return json.loads(response['choices'][0]['message']['content'])
 
-    def summarize_policy(self, policy):
-        try:
-            response = openai.ChatCompletion.create(
-                messages=[
-                    {'role': 'system', 'content': AGENT_INSTRUCTIONS},
-                    {'role': 'user', 'content': 'Privacy policy:'},
-                    {'role': 'user', 'content': policy},
-                    {'role': 'user', 'content': QUESTIONS},
-                ],
-                model=self.gpt_model,
-                temperature=0,
-            )
-            return json.loads(response['choices'][0]['message']['content'])
-        except json.JSONDecodeError:
-            return self._repair_formatting(response['choices'][0]['message']['content'])
+    def summarize_policy(self, policy, api_key, organization_id):
+        openai.api_key = api_key
+        openai.organization = organization_id
+        response = openai.ChatCompletion.create(
+            messages=[
+                {'role': 'system', 'content': AGENT_INSTRUCTIONS},
+                {'role': 'user', 'content': 'Privacy policy:'},
+                {'role': 'user', 'content': policy},
+                {'role': 'user', 'content': QUESTIONS},
+            ],
+            model=self.gpt_model,
+            temperature=0,
+        )
+        return self._transform_to_json(response['choices'][0]['message']['content'])

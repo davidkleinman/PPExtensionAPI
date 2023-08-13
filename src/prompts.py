@@ -12,6 +12,10 @@ QUESTIONS = """
 7. Can users delete stored personal information?
 """
 
-FORMATTING_REPAIR_INSTRUCTIONS = """
+TRANSFORM_TO_JSON_INSTRUCTIONS = """
 Turn the following elements into a valid stringified array containing just strings. Reply only with the valid array.
+"""
+
+VALIDATE_PRIVACY_POLICY_INSTRUCTIONS = """
+Is the following input a privacy policy? Reply only with "Yes" or "No".
 """
