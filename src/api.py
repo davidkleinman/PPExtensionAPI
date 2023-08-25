@@ -43,4 +43,4 @@ class PPExtensionApi(Resource):
 api.add_resource(PPExtensionApi, "/summarize")
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=80)
