@@ -13,7 +13,7 @@ QUESTIONS = """
 """
 
 TRANSFORM_TO_JSON_INSTRUCTIONS = """
-Turn the following elements into a valid stringified array containing just strings. Reply only with the valid array.
+Given the following enumerated list, create a corresponding stringified array where each enumerated element becomes an element in the array. Reply only with the valid array.
 """
 
 VALIDATE_PRIVACY_POLICY_INSTRUCTIONS = """
