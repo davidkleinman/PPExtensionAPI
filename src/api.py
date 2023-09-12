@@ -30,15 +30,16 @@ class PPExtensionApi(Resource):
         url = request_body.get("url")
         api_key = request_body.get("apiKey")
         organization_id = request_body.get("orgId")
-        policy_content = self._parse_content_from_url(url)
-        if not self.gpt_client.validate_privacy_policy(policy_content, api_key, organization_id):
-            response = flask.Response("The webpage does not contain a privacy policy", 404)
-            return response
-        gpt_answer = self.gpt_client.summarize_policy(policy_content, api_key, organization_id)
-        response = flask.jsonify(
+        try:
+            policy_content = self._parse_content_from_url(url)
+            if not self.gpt_client.validate_privacy_policy(policy_content, api_key, organization_id):
+                return flask.Response("The webpage does not contain a privacy policy", 404)
+            gpt_answer = self.gpt_client.summarize_policy(policy_content, api_key, organization_id)
+        except Exception as e:
+            return flask.Response(f"An error occurred when calling GPT - {e}", 500)
+        return flask.jsonify(
             {"data": gpt_answer}
         )
-        return response
 
 api.add_resource(PPExtensionApi, "/summarize")
 
